@@ -16,16 +16,13 @@ class SuperTuxDataset(Dataset):
 
         WARNING: Do not perform data normalization here. 
         """
-
-        with open(dataset_path, newline='') as csvfile:
+        self.data_path = dataset_path
+        with open(os.getcwd() + '/' + dataset_path + '/' + 'labels.csv', newline='') as csvfile:
             self.label_reader = csv.reader(csvfile, delimiter=',')
 
-        next(self.label_reader)
+            next(self.label_reader)
 
-        self.label_data = list(self.label_reader)
-        self.label_data = self.label_data[:-1]
-
-        os.chdir(dataset_path)
+            self.label_data = list(self.label_reader)
 
     def __len__(self):
         """
@@ -40,8 +37,12 @@ class SuperTuxDataset(Dataset):
         """
 
         image_name = self.label_data[idx][0]
+        trans = transforms.Compose([transforms.ToTensor()])
 
-        return (torchvision.transforms.ToTensor(image_name), LABEL_NAMES.index(self.label_data[idx][1]))
+        with Image.open(os.getcwd() + '/' + self.data_path + '/' + image_name) as im:
+
+            output = (trans(im), LABEL_NAMES.index(self.label_data[idx][1]))
+            return output
 
 
 def load_data(dataset_path, num_workers=0, batch_size=128):
