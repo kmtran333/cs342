@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="fd60b3b8-ab74-4b83-9077-b3b69c430b7b" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/homework1.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/homework1.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/homework/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/homework/utils.py" afterDir="false" />
-    </list>
+    <list default="true" id="fd60b3b8-ab74-4b83-9077-b3b69c430b7b" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -127,27 +122,5 @@
       </map>
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
-  </component>
-  <component name="WindowStateProjectService">
-    <state x="304" y="198" width="1071" height="700" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1631566511662">
-      <screen x="0" y="23" width="1680" height="1027" />
-    </state>
-    <state x="304" y="198" width="1071" height="700" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1680.1027@0.23.1680.1027" timestamp="1631566511662" />
-    <state width="1659" height="280" key="GridCell.Tab.0.bottom" timestamp="1631567108457">
-      <screen x="0" y="23" width="1680" height="1027" />
-    </state>
-    <state width="1659" height="280" key="GridCell.Tab.0.bottom/0.23.1680.1027@0.23.1680.1027" timestamp="1631567108457" />
-    <state width="1659" height="280" key="GridCell.Tab.0.center" timestamp="1631567108457">
-      <screen x="0" y="23" width="1680" height="1027" />
-    </state>
-    <state width="1659" height="280" key="GridCell.Tab.0.center/0.23.1680.1027@0.23.1680.1027" timestamp="1631567108457" />
-    <state width="1659" height="280" key="GridCell.Tab.0.left" timestamp="1631567108456">
-      <screen x="0" y="23" width="1680" height="1027" />
-    </state>
-    <state width="1659" height="280" key="GridCell.Tab.0.left/0.23.1680.1027@0.23.1680.1027" timestamp="1631567108456" />
-    <state width="1659" height="280" key="GridCell.Tab.0.right" timestamp="1631567108457">
-      <screen x="0" y="23" width="1680" height="1027" />
-    </state>
-    <state width="1659" height="280" key="GridCell.Tab.0.right/0.23.1680.1027@0.23.1680.1027" timestamp="1631567108457" />
   </component>
 </project>
