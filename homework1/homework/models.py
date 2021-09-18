@@ -21,7 +21,7 @@ class ClassificationLoss(torch.nn.Module):
 
 
 class LinearClassifier(torch.nn.Module):
-    def __init__(self, n_hidden=6):
+    def __init__(self, n_hidden=100):
         super().__init__()
 
         """
@@ -29,6 +29,7 @@ class LinearClassifier(torch.nn.Module):
         """
         self.input_size = 64*64*3
         self.linear1 = torch.nn.Linear(self.input_size, n_hidden)
+        self.linear2 = torch.nn.Linear(n_hidden, 6)
 
     def forward(self, x):
         """
@@ -37,17 +38,20 @@ class LinearClassifier(torch.nn.Module):
         @x: torch.Tensor((B,3,64,64))
         @return: torch.Tensor((B,6))
         """
-        return self.linear1(x.view(x.size(0),-1))
+        return self.linear2(self.linear1(x.view(x.size(0),-1)))
 
 
 class MLPClassifier(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, n_hidden=100):
         super().__init__()
 
         """
         Your code here
         """
-        raise NotImplementedError('MLPClassifier.__init__')
+        self.input_size = 64*64*3
+        self.linear1 = torch.nn.Linear(self.input_size, n_hidden)
+        self.linear2 = torch.nn.Linear(n_hidden, 6)
+        self.activation = torch.nn.ReLU()
 
     def forward(self, x):
         """
@@ -56,7 +60,7 @@ class MLPClassifier(torch.nn.Module):
         @x: torch.Tensor((B,3,64,64))
         @return: torch.Tensor((B,6))
         """
-        raise NotImplementedError('MLPClassifier.forward')
+        return self.linear2(self.activation(self.linear1(x.view(x.size(0),-1))))
 
 
 model_factory = {

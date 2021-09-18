@@ -21,7 +21,9 @@ def train(args):
 
     optimizer = torch.optim.SGD(model.parameters(), args.lr, momentum=0.9, weight_decay=1e-4)
 
+
     loss = torch.nn.CrossEntropyLoss()
+
     # Start training
     global_step = 0
     for epoch in range(args.n_epochs):
@@ -32,15 +34,15 @@ def train(args):
         train_accuracy = []
         for it in range(0, len(permutation)-args.batch+1, args.batch):
             batch_samples = permutation[it:it+args.batch]
-            batch_data, batch_label= train_data[batch_samples], train_label[batch_samples]
+            batch_data, batch_label = train_data[batch_samples], train_label[batch_samples]
 
             # Compute the loss
             o = model.forward(batch_data)
             loss_val = loss(o, batch_label.long())
 
 
-
-            train_accuracy.extend(((o>0).long() == batch_label[:,None]).cpu().detach().numpy())
+            # train_accuracy.extend(((o>0).long() == batch_label[:,None]).cpu().detach().numpy())
+            train_accuracy.append(accuracy(o, batch_label))
 
             optimizer.zero_grad()
             loss_val.backward()
@@ -58,9 +60,9 @@ if __name__ == '__main__':
 
     parser.add_argument('-m', '--model', choices=['linear', 'mlp'], default='linear')
     # Put custom arguments here
-    parser.add_argument('--n_epochs', default=100)
-    parser.add_argument('--batch', default=128)
-    parser.add_argument('--lr', default=0.01)
+    parser.add_argument('--n_epochs', type=int, default=250)
+    parser.add_argument('--batch', type=int, default=128)
+    parser.add_argument('--lr', type=float, default=0.01)
     parser.add_argument('-p', '--path', default='data/train')
 
     args = parser.parse_args()
