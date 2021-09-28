@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="fd60b3b8-ab74-4b83-9077-b3b69c430b7b" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/homework1.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/homework1.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/homework/linear.th" beforeDir="false" afterPath="$PROJECT_DIR$/homework/linear.th" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/homework/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/homework/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/homework/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/homework/train.py" afterDir="false" />
-    </list>
+    <list default="true" id="fd60b3b8-ab74-4b83-9077-b3b69c430b7b" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
