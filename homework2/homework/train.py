@@ -10,7 +10,6 @@ def train(args):
     model = CNNClassifier()
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-
     model.to(device)
 
     train_logger, valid_logger = None, None
@@ -52,14 +51,15 @@ def train(args):
         valid_accuracy = []
         for it in range(0, len(permutation) - args.batch+1, args.batch):
             batch_samples = permutation[it:it + args.batch]
-            batch_data, batch_label = train_data[batch_samples], train_label[batch_samples]
+            batch_data, batch_label = train_data[batch_samples].to(device), train_label[batch_samples].to(device)
 
             o = model.forward(batch_data)
             loss_val = loss(o, batch_label.long())
+            acc_val = accuracy(o, batch_label)
 
-            train_accuracy.append(accuracy(o, batch_label))
+            train_accuracy.append(acc_val.detach().cpu().numpy())
 
-            train_logger.add_scalar('loss', float(loss_val), global_step=global_step)
+            train_logger.add_scalar('loss', float(loss_val.detach().cpu().numpy()), global_step=global_step)
 
             optimizer.zero_grad()
             loss_val.backward()
@@ -69,9 +69,10 @@ def train(args):
 
         train_logger.add_scalar('accuracy', np.mean(train_accuracy), global_step=global_step)
 
-        valid_pred = model.forward(valid_data)
+        valid_pred = model.forward(valid_data.to(device))
         valid_accuracy.append(accuracy(valid_pred, valid_label))
         valid_logger.add_scalar('accuracy', np.mean(valid_accuracy), global_step=global_step)
+        print(epoch)
     save_model(model)
 
 
