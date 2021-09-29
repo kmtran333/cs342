@@ -18,16 +18,20 @@ def test_logging(train_logger, valid_logger):
     global_step = 0
     for epoch in range(10):
         torch.manual_seed(epoch)
+        acc = []
         for iteration in range(20):
             dummy_train_loss = 0.9**(epoch+iteration/20.)
-            dummy_train_accuracy = abs(epoch/10. + torch.randn(10))
+            dummy_train_accuracy = epoch/10. + torch.randn(10)
             train_logger.add_scalar('loss', float(dummy_train_loss), global_step=global_step)
+            acc.extend(dummy_train_accuracy)
             global_step += 1
-        train_logger.add_scalar('accuracy', torch.mean(dummy_train_accuracy), global_step=epoch)
+        train_logger.add_scalar('accuracy', np.mean(acc), global_step=global_step)
         torch.manual_seed(epoch)
+        valid = []
         for iteration in range(10):
             dummy_validation_accuracy = epoch / 10. + torch.randn(10)
-        train_logger.add_scalar('validation', torch.mean(dummy_validation_accuracy), global_step=epoch)
+            valid.extend(dummy_validation_accuracy)
+        valid_logger.add_scalar('accuracy', np.mean(valid), global_step=global_step)
 
 
 if __name__ == "__main__":

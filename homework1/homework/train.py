@@ -21,7 +21,6 @@ def train(args):
 
     optimizer = torch.optim.SGD(model.parameters(), args.lr, momentum=0.9, weight_decay=1e-4)
 
-
     loss = torch.nn.CrossEntropyLoss()
 
     # Start training
@@ -39,7 +38,6 @@ def train(args):
             # Compute the loss
             o = model.forward(batch_data)
             loss_val = loss(o, batch_label.long())
-
 
             # train_accuracy.extend(((o>0).long() == batch_label[:,None]).cpu().detach().numpy())
             train_accuracy.append(accuracy(o, batch_label))
