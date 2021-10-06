@@ -15,7 +15,7 @@ class CNNClassifier(torch.nn.Module):
         def forward(self, x):
             return self.net(x)
 
-    def __init__(self, layers=[32, 64], n_input_channels=3):
+    def __init__(self, layers=[32, 64, 128], n_input_channels=3):
         """
         Your code here
         """
@@ -38,9 +38,10 @@ class CNNClassifier(torch.nn.Module):
         @x: torch.Tensor((B,3,64,64))
         @return: torch.Tensor((B,6))
         """
+
         z = self.network(x)
-        z = z.mean([2, 3])
-        return self.classifier(z)
+        z = self.classifier(z.mean(dim=[2,3]))
+        return z
 
 
 def save_model(model):

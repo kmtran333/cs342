@@ -21,41 +21,30 @@ def train(args):
     Your code here, modify your HW1 code
     
     """
-    # data_loaded = load_data('data/train').dataset
-    # train_data, train_label = [], []
-    # for i in range(len(data_loaded)):
-    #     d, l = data_loaded[i]
-    #     train_data.append(d)
-    #     train_label.append(l)
-    # train_data = torch.stack(train_data)
-    # train_label = torch.Tensor(train_label).int()
-    #
-    # data_loaded_val = load_data('data/valid').dataset
-    # valid_data, valid_label = [], []
-    # for i in range(len(data_loaded_val)):
-    #     d, l = data_loaded_val[i]
-    #     valid_data.append(d)
-    #     valid_label.append(l)
-    # valid_data = torch.stack(valid_data)
-    # valid_label = torch.Tensor(valid_label).int()
 
-    optimizer = torch.optim.SGD(model.parameters(), args.lr, momentum=0.9, weight_decay=1e-4)
+    # optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-4)
+    optimizer = torch.optim.Adam(model.parameters())
+
+    if args.schedule_lr:
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=50)
 
     loss = torch.nn.CrossEntropyLoss()
     global_step = 0
 
     for epoch in range(args.n_epochs):
-        # permutation = torch.randperm(train_data.size(0))
-
+        model.train()
         train_accuracy = []
-        for it, (data, label) in enumerate(train_data):
+        loss_data = []
+
+        for data, label in train_data:
             if device is not None:
                 data, label = data.to(device), label.to(device)
 
-            o = model.forward(data)
+            o = model(data)
+            loss_val = loss(o, label)
 
-            loss_val = loss(o, label.long())
             train_accuracy.append(accuracy(o, label).detach().cpu().numpy())
+            loss_data.append(loss_val.detach().cpu().numpy())
 
             train_logger.add_scalar('loss', float(loss_val.detach().cpu().numpy()), global_step=global_step)
 
@@ -67,39 +56,21 @@ def train(args):
 
         train_logger.add_scalar('accuracy', np.mean(train_accuracy), global_step=global_step)
 
+        model.eval()
         valid_accuracy = []
-        for it, (data, label) in enumerate(valid_data):
+        for data, label in valid_data:
             if device is not None:
                 data, label = data.to(device), label.to(device)
-            o = model.forward(data)
+            o = model(data)
             valid_accuracy.append(accuracy(o, label).detach().cpu().numpy())
 
+        if args.schedule_lr:
+            train_logger.add_scalar('lr', optimizer.param_groups[0]['lr'], global_step=global_step)
+            scheduler.step(np.mean(valid_accuracy))
+
         valid_logger.add_scalar('accuracy', np.mean(valid_accuracy), global_step=global_step)
-        print(epoch)
-        # for it in range(0, len(permutation) - args.batch+1, args.batch):
-        #     batch_samples = permutation[it:it + args.batch]
-        #     batch_data, batch_label = train_data[batch_samples].to(device), train_label[batch_samples].to(device)
-        #
-        #     o = model.forward(batch_data)
-        #     loss_val = loss(o, batch_label.long())
-        #     acc_val = accuracy(o, batch_label)
-        #
-        #     train_accuracy.append(acc_val.detach().cpu().numpy())
-        #
-        #     train_logger.add_scalar('loss', float(loss_val.detach().cpu().numpy()), global_step=global_step)
-        #
-        #     optimizer.zero_grad()
-        #     loss_val.backward()
-        #     optimizer.step()
-        #
-        #     global_step += 1
-        #
-        # train_logger.add_scalar('accuracy', np.mean(train_accuracy), global_step=global_step)
-        #
-        # valid_pred = model.forward(valid_data.to(device))
-        # valid_accuracy.append(accuracy(valid_pred, valid_label))
-        # valid_logger.add_scalar('accuracy', np.mean(valid_accuracy), global_step=global_step)
-        # print(epoch)
+
+        print(epoch, np.mean(train_accuracy), np.mean(valid_accuracy))
     save_model(model)
 
 
@@ -111,10 +82,11 @@ if __name__ == '__main__':
     # Put custom arguments here
     parser.add_argument('--n_epochs', type=int, default=50)
     parser.add_argument('--batch', type=int, default=128)
-    parser.add_argument('--lr', type=float, default=0.001)
+    parser.add_argument('--lr', type=float, default=1e-3)
+    parser.add_argument('-sl', '--schedule_lr', action='store_true')
 
     args = parser.parse_args()
 
-    train_data = load_data('data/train', random_crop=(128, 128), random_horizontal_flip=True)
+    train_data = load_data('data/train')
     valid_data = load_data('data/valid')
     train(args)
