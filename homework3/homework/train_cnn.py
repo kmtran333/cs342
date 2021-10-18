@@ -3,6 +3,7 @@ from .utils import ConfusionMatrix, load_data, LABEL_NAMES
 import torch
 import torchvision
 import torch.utils.tensorboard as tb
+import numpy as np
 
 
 def train(args):
@@ -33,6 +34,7 @@ def train(args):
 
     for epoch in range(args.n_epochs):
         model.train()
+        train_cm = ConfusionMatrix(6)
         train_accuracy = []
         loss_data = []
 
@@ -43,7 +45,8 @@ def train(args):
             o = model(data)
             loss_val = loss(o, label)
 
-            train_accuracy.append(accuracy(o, label).detach().cpu().numpy())
+            train_cm.add(o.argmax(1).cpu(), label)
+            train_accuracy.append(train_cm.global_accuracy.detach().cpu().numpy())
             loss_data.append(loss_val.detach().cpu().numpy())
 
             train_logger.add_scalar('loss', float(loss_val.detach().cpu().numpy()), global_step=global_step)
@@ -57,12 +60,14 @@ def train(args):
         train_logger.add_scalar('accuracy', np.mean(train_accuracy), global_step=global_step)
 
         model.eval()
+        valid_cm = ConfusionMatrix(6)
         valid_accuracy = []
         for data, label in valid_data:
             if device is not None:
                 data, label = data.to(device), label.to(device)
             o = model(data)
-            valid_accuracy.append(accuracy(o, label).detach().cpu().numpy())
+            valid_cm.add(o.argmax(1).cpu(), label)
+            valid_accuracy.append(valid_cm.global_accuracy.detach().cpu().numpy())
 
         if args.schedule_lr:
             train_logger.add_scalar('lr', optimizer.param_groups[0]['lr'], global_step=global_step)
