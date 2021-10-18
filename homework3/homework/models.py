@@ -8,13 +8,23 @@ class CNNClassifier(torch.nn.Module):
             super().__init__()
             self.net = torch.nn.Sequential(
                 torch.nn.Conv2d(n_input, n_output, kernel_size=3, padding=1, stride=stride),
+                torch.nn.BatchNorm2d(n_output),
                 torch.nn.ReLU(),
                 torch.nn.Conv2d(n_output, n_output, kernel_size=3, padding=1),
+                torch.nn.BatchNorm2d(n_output),
                 torch.nn.ReLU()
             )
+            self.downsample = None
+            if n_input != n_output or stride != 1:
+                self.downsample = torch.nn.Sequential(
+                    torch.nn.Conv2d(n_input, n_output, kernel_size=1, stride=stride),
+                    torch.nn.BatchNorm2d(n_output))
 
         def forward(self, x):
-            return self.net(x)
+            identity = x
+            if self.downsample is not None:
+                identity = self.downsample(identity)
+            return self.net(x) + identity
 
     def __init__(self, layers=[32, 64, 128], n_input_channels=3):
         """
@@ -23,6 +33,7 @@ class CNNClassifier(torch.nn.Module):
         super().__init__()
         L = [
             torch.nn.Conv2d(n_input_channels, 32, kernel_size=7, padding=3, stride=2),
+            torch.nn.BatchNorm2d(32),
             torch.nn.ReLU()
         ]
         c = 32

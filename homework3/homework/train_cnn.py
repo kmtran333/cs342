@@ -93,9 +93,9 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    transforms = [transforms.ToTensor(),
-                  torchvision.transforms.RandomHorizontalFlip(),
-                  torchvision.transforms.ColorJitter()]
+    transforms = [torchvision.transforms.RandomHorizontalFlip(),
+                  torchvision.transforms.ColorJitter(),
+                  transforms.ToTensor()]
 
     transforms = torchvision.transforms.Compose(transforms)
 
