@@ -45,7 +45,7 @@ def train(args):
             o = model(data)
             loss_val = loss(o, label)
 
-            train_cm.add(o.argmax(1).cpu(), label)
+            train_cm.add(o.argmax(1), label)
             train_accuracy.append(train_cm.global_accuracy.detach().cpu().numpy())
             loss_data.append(loss_val.detach().cpu().numpy())
 
@@ -66,7 +66,7 @@ def train(args):
             if device is not None:
                 data, label = data.to(device), label.to(device)
             o = model(data)
-            valid_cm.add(o.argmax(1).cpu(), label)
+            valid_cm.add(o.argmax(1), label)
             valid_accuracy.append(valid_cm.global_accuracy.detach().cpu().numpy())
 
         if args.schedule_lr:
