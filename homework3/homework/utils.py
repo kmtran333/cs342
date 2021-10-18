@@ -15,7 +15,7 @@ DENSE_CLASS_DISTRIBUTION = [0.52683655, 0.02929112, 0.4352989, 0.0044619, 0.0041
 
 
 class SuperTuxDataset(Dataset):
-    def __init__(self, dataset_path):
+    def __init__(self, dataset_path, transform=transforms.ToTensor()):
         """
         Your code here
         Hint: Use your solution (or the master solution) to HW1 / HW2
@@ -27,14 +27,17 @@ class SuperTuxDataset(Dataset):
         import csv
         from os import path
         self.data = []
-        to_tensor = transforms.ToTensor()
+        self.label = []
+        self.transform = transform
         with open(path.join(dataset_path, 'labels.csv'), newline='') as f:
             reader = csv.reader(f)
             for fname, label, _ in reader:
                 if label in LABEL_NAMES:
                     image = Image.open(path.join(dataset_path, fname))
+                    image.load()
                     label_id = LABEL_NAMES.index(label)
-                    self.data.append((to_tensor(image), label_id))
+                    self.data.append(image)
+                    self.label.append(label_id)
 
     def __len__(self):
         """
@@ -46,7 +49,13 @@ class SuperTuxDataset(Dataset):
         """
         Your code here
         """
-        return self.data[idx]
+
+        output = self.data[idx]
+        output_label = self.label[idx]
+
+        if self.transform is not None:
+            output = self.transform(output)
+        return output, output_label
 
 
 class DenseSuperTuxDataset(Dataset):

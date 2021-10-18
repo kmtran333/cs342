@@ -2,6 +2,7 @@ from .models import CNNClassifier, save_model
 from .utils import ConfusionMatrix, load_data, LABEL_NAMES
 import torch
 import torchvision
+from torchvision import transforms
 import torch.utils.tensorboard as tb
 import numpy as np
 
@@ -92,6 +93,12 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    train_data = load_data('data/train')
-    valid_data = load_data('data/valid')
+    transforms = [transforms.ToTensor(),
+                  torchvision.transforms.RandomHorizontalFlip(),
+                  torchvision.transforms.ColorJitter()]
+
+    transforms = torchvision.transforms.Compose(transforms)
+
+    train_data = load_data('data/train', transform=transforms)
+    valid_data = load_data('data/valid', transform=transforms)
     train(args)
