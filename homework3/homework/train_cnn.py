@@ -94,11 +94,12 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     transforms = [torchvision.transforms.RandomHorizontalFlip(),
-                  torchvision.transforms.ColorJitter(),
+                  torchvision.transforms.ColorJitter(brightness=0.8, contrast=0.5, saturation=0.7, hue=0.4),
                   transforms.ToTensor()]
 
     transforms = torchvision.transforms.Compose(transforms)
 
     train_data = load_data('data/train', transform=transforms)
-    valid_data = load_data('data/valid', transform=transforms)
+    valid_data = load_data('data/valid')
+
     train(args)
