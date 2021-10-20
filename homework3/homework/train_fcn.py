@@ -32,10 +32,10 @@ def train(args):
     optimizer = torch.optim.Adam(model.parameters())
 
     if args.schedule_lr:
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=50)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
 
     weights = torch.FloatTensor([1 / num for num in DENSE_CLASS_DISTRIBUTION]).to(device)
-    loss = torch.nn.CrossEntropyLoss(weight=weights)
+    loss = torch.nn.CrossEntropyLoss()
     global_step = 0
 
     for epoch in range(args.n_epochs):
@@ -123,7 +123,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     transforms = [dense_transforms.RandomHorizontalFlip(),
-                  dense_transforms.ColorJitter(brightness=0.8, contrast=0.5, saturation=0.7, hue=0.4),
+                  dense_transforms.ColorJitter(brightness=0.2, contrast=0.5, saturation=0.7, hue=0.1),
                   dense_transforms.ToTensor()]
 
     transforms = dense_transforms.Compose(transforms)
