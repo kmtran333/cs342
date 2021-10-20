@@ -79,7 +79,7 @@ class FCN(torch.nn.Module):
                 identity = self.downsample(identity)
             return self.net(x) + identity
 
-    def __init__(self, layers=[64, 128], n_input_channels=3, n_output_channels=5):
+    def __init__(self, layers=[32, 64, 128], n_input_channels=3, n_output_channels=5):
         super().__init__()
         """
         Your code here.
@@ -90,11 +90,11 @@ class FCN(torch.nn.Module):
         Hint: Always pad by kernel_size / 2, use an odd kernel_size
         """
         L = [
-            torch.nn.Conv2d(n_input_channels, 64, kernel_size=7, padding=3, stride=2),
-            torch.nn.BatchNorm2d(64),
+            torch.nn.Conv2d(n_input_channels, 32, kernel_size=7, padding=3, stride=2),
+            torch.nn.BatchNorm2d(32),
             torch.nn.ReLU()
         ]
-        c = 64
+        c = 32
         for l in layers:
             L.append(self.Block(c, l, stride=2))
             c = l
@@ -105,10 +105,16 @@ class FCN(torch.nn.Module):
         L.append(torch.nn.ReLU())
 
         # Add Up-Convolutions
-        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=3, padding=1, stride=2, output_padding=1))
-        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=3, padding=1, stride=2, output_padding=1))
-        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=3, padding=1, stride=2, output_padding=1))
-        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=7, padding=3, stride=2, output_padding=1))
+        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=3, padding=1, stride=2,
+                                          output_padding=1))  # Last convolution (instead of linear)
+        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=3, padding=1, stride=2,
+                                          output_padding=1))  # Layer 128
+        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=3, padding=1, stride=2,
+                                          output_padding=1))  # Layer 64
+        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=3, padding=1, stride=2,
+                                          output_padding=1))  # Layer 32
+        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=7, padding=3, stride=2,
+                                          output_padding=1))  # Initial layer
 
         self.network = torch.nn.Sequential(*L)
 

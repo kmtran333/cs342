@@ -34,7 +34,7 @@ def train(args):
     if args.schedule_lr:
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=50)
 
-    loss = torch.nn.CrossEntropyLoss()
+    loss = torch.nn.CrossEntropyLoss(weight=1/DENSE_CLASS_DISTRIBUTION)
     global_step = 0
 
     for epoch in range(args.n_epochs):
