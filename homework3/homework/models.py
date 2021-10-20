@@ -57,7 +57,29 @@ class CNNClassifier(torch.nn.Module):
 
 
 class FCN(torch.nn.Module):
-    def __init__(self):
+    class Block(torch.nn.Module):
+        def __init__(self, n_input, n_output, stride=1):
+            super().__init__()
+            self.net = torch.nn.Sequential(
+                torch.nn.Conv2d(n_input, n_output, kernel_size=3, padding=1, stride=stride),
+                torch.nn.BatchNorm2d(n_output),
+                torch.nn.ReLU()
+            )
+
+            self.downsample = None
+
+            if n_input != n_output or stride != 1:
+                self.downsample = torch.nn.Sequential(
+                    torch.nn.Conv2d(n_input, n_output, kernel_size=1, stride=stride),
+                    torch.nn.BatchNorm2d(n_output))
+
+        def forward(self, x):
+            identity = x
+            if self.downsample is not None:
+                identity = self.downsample(identity)
+            return self.net(x) + identity
+
+    def __init__(self, layers=[64, 128], n_input_channels=3, n_output_channels=5):
         super().__init__()
         """
         Your code here.
@@ -67,7 +89,28 @@ class FCN(torch.nn.Module):
         Hint: Use residual connections
         Hint: Always pad by kernel_size / 2, use an odd kernel_size
         """
-        raise NotImplementedError('FCN.__init__')
+        L = [
+            torch.nn.Conv2d(n_input_channels, 64, kernel_size=7, padding=3, stride=2),
+            torch.nn.BatchNorm2d(64),
+            torch.nn.ReLU()
+        ]
+        c = 64
+        for l in layers:
+            L.append(self.Block(c, l, stride=2))
+            c = l
+
+        # Convert linear layer to convolution
+        L.append(torch.nn.Conv2d(c, n_output_channels, kernel_size=3, padding=1, stride=2))
+        L.append(torch.nn.BatchNorm2d(n_output_channels))
+        L.append(torch.nn.ReLU())
+
+        # Add Up-Convolutions
+        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=3, padding=1, stride=2, output_padding=1))
+        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=3, padding=1, stride=2, output_padding=1))
+        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=3, padding=1, stride=2, output_padding=1))
+        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=7, padding=3, stride=2, output_padding=1))
+
+        self.network = torch.nn.Sequential(*L)
 
     def forward(self, x):
         """
@@ -79,7 +122,13 @@ class FCN(torch.nn.Module):
               if required (use z = z[:, :, :H, :W], where H and W are the height and width of a corresponding strided
               convolution
         """
-        raise NotImplementedError('FCN.forward')
+
+        h = x.shape[2]
+        w = x.shape[3]
+
+        z = self.network(x)
+
+        return z[:, :, :h, :w]
 
 
 model_factory = {
