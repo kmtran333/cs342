@@ -79,6 +79,19 @@ class FCN(torch.nn.Module):
                 identity = self.downsample(identity)
             return self.net(x) + identity
 
+    class BlockUp(torch.nn.Module):
+        def __init__(self, n_input, n_output, kernel_size=3, stride=1):
+            super().__init__()
+            self.net = torch.nn.Sequential(
+                torch.nn.ConvTranspose2d(n_input, n_output, kernel_size=kernel_size, padding=kernel_size//2,
+                                         stride=stride, output_padding=1),
+                torch.nn.BatchNorm2d(n_output),
+                torch.nn.ReLU()
+            )
+
+        def forward(self, x):
+            return self.net(x)
+
     def __init__(self, layers=[32, 64, 128], n_input_channels=3, n_output_channels=5):
         super().__init__()
         """
@@ -105,16 +118,12 @@ class FCN(torch.nn.Module):
         L.append(torch.nn.ReLU())
 
         # Add Up-Convolutions
-        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=3, padding=1, stride=2,
-                                          output_padding=1))  # Last convolution (instead of linear)
-        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=3, padding=1, stride=2,
-                                          output_padding=1))  # Layer 128
-        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=3, padding=1, stride=2,
-                                          output_padding=1))  # Layer 64
-        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=3, padding=1, stride=2,
-                                          output_padding=1))  # Layer 32
-        L.append(torch.nn.ConvTranspose2d(n_output_channels, n_output_channels, kernel_size=7, padding=3, stride=2,
-                                          output_padding=1))  # Initial layer
+        L.append(self.BlockUp(n_output_channels, n_output_channels, stride=2))  # Last conv
+
+        for l in layers:
+            L.append(self.BlockUp(n_output_channels, n_output_channels, stride=2))
+
+        L.append(self.BlockUp(n_output_channels, n_output_channels, kernel_size=7, stride=2))  # Initial conv
 
         self.network = torch.nn.Sequential(*L)
 
