@@ -49,7 +49,6 @@ def train(args):
                 data, label = data.to(device), label.to(device).long()
 
             o = model(data)
-            print(o)
             loss_val = loss(o, label)
 
             train_cm.add(o.argmax(1), label)
