@@ -112,18 +112,23 @@ class FCN(torch.nn.Module):
             L.append(self.Block(c, l, stride=2))
             c = l
 
-        # Convert linear layer to convolution
-        L.append(torch.nn.Conv2d(c, n_output_channels, kernel_size=3, padding=1, stride=2))
-        L.append(torch.nn.BatchNorm2d(n_output_channels))
-        L.append(torch.nn.ReLU())
+        # # Convert linear layer to convolution
+        # L.append(torch.nn.Conv2d(c, n_output_channels, kernel_size=3, padding=1, stride=2))
+        # L.append(torch.nn.BatchNorm2d(n_output_channels))
+        # L.append(torch.nn.ReLU())
 
         # Add Up-Convolutions
-        L.append(self.BlockUp(n_output_channels, n_output_channels, stride=2))  # Last conv
+        up_layers = layers[::-1]
+        c = 128
+        for l in up_layers:
+            L.append(self.BlockUp(c, l, stride=2))
+            c=l
+        L.append(self.BlockUp(c, 32, kernel_size=7, stride=2))  # Initial conv
 
-        for l in layers:
-            L.append(self.BlockUp(n_output_channels, n_output_channels, stride=2))
-
-        L.append(self.BlockUp(n_output_channels, n_output_channels, kernel_size=7, stride=2))  # Initial conv
+        # Final convolution to desired output channels
+        L.append(torch.nn.Conv2d(32, n_output_channels, kernel_size=1))
+        L.append(torch.nn.BatchNorm2d(n_output_channels))
+        L.append(torch.nn.ReLU())
 
         self.network = torch.nn.Sequential(*L)
 
