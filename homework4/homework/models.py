@@ -128,11 +128,11 @@ class Detector(torch.nn.Module):
         for i in range(image.size(0)):
             current_class = image[i]
             peaks = extract_peak(current_class, max_det=30)
-            for j in peaks:
+            for j in range(len(peaks)):
                 peaks[j] = peaks[j] + (w/2, h/2)
             all_detections.append(peaks)
 
-        return all_detections[0], all_detections[1], all_detections[2]
+        return all_detections
 
 
 def save_model(model):

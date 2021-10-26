@@ -64,7 +64,7 @@ def train(args):
             optimizer.step()
 
             global_step += 1
-            
+
         log(train_logger, data, label, o, global_step=global_step)
         print(epoch)
     save_model(model)
