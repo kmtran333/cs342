@@ -57,14 +57,15 @@ def train(args):
             loss_data.append(loss_val.detach().cpu().numpy())
 
             train_logger.add_scalar('loss', float(loss_val.detach().cpu().numpy()), global_step=global_step)
-            log(train_logger, data, label, o, global_step=global_step)
+
 
             optimizer.zero_grad()
             loss_val.backward()
             optimizer.step()
 
             global_step += 1
-
+            
+        log(train_logger, data, label, o, global_step=global_step)
         print(epoch)
     save_model(model)
 
