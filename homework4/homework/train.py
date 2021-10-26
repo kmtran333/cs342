@@ -51,6 +51,7 @@ def train(args):
             if device is not None:
                 data, label, size = data.to(device), label.to(device), size.to(device)
             o = model(data)
+
             loss_val = loss.forward(o, label)
 
             loss_data.append(loss_val.detach().cpu().numpy())

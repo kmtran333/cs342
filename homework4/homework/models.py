@@ -93,8 +93,6 @@ class Detector(torch.nn.Module):
 
         # Final convolution to desired output channels
         L.append(torch.nn.Conv2d(32, n_output_channels, kernel_size=1))
-        L.append(torch.nn.BatchNorm2d(n_output_channels))
-        L.append(torch.nn.ReLU())
 
         self.network = torch.nn.Sequential(*L)
 
