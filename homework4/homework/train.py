@@ -30,7 +30,7 @@ def train(args):
     model.to(device)
 
     if args.continue_training:
-        model.load_state_dict(torch.load(path.join(path.dirname(path.abspath(__file__)), 'fcn.th')))
+        model.load_state_dict(torch.load(path.join(path.dirname(path.abspath(__file__)), 'det.th')))
 
     train_logger, valid_logger = None, None
     if args.log_dir is not None:
