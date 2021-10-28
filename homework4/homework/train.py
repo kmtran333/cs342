@@ -96,7 +96,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-n', '--n_epochs', type=int, default=50)
     parser.add_argument('--batch', type=int, default=128)
-    parser.add_argument('-lr','--lr', type=float, default=1e-3)
+    parser.add_argument('-lr', '--learning_rate', type=float, default=1e-3)
     parser.add_argument('-c', '--continue_training', action='store_true')
     parser.add_argument('-sl', '--schedule_lr', action='store_true')
 
