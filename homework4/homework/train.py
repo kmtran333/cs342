@@ -98,8 +98,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    transforms = [dense_transforms.RandomHorizontalFlip(),
-                  dense_transforms.ColorJitter(brightness=0.8, contrast=0.5, saturation=0.7, hue=0.4),
+    transforms = [dense_transforms.ColorJitter(brightness=0.9, contrast=0.9, saturation=0.9, hue=0.1),
+                  dense_transforms.RandomHorizontalFlip(),
                   dense_transforms.ToTensor(),
                   dense_transforms.ToHeatmap()]
 
