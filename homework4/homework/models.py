@@ -117,6 +117,7 @@ class Detector(torch.nn.Module):
                  out of memory.
         """
         heatmap = self.forward(image)[0]
+
         w = image.size(2)
         h = image.size(1)
         all_detections = []
