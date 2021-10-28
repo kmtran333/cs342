@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-
+import sys
 
 def extract_peak(heatmap, max_pool_ks=7, min_score=-5, max_det=100):
     """
@@ -116,11 +116,12 @@ class Detector(torch.nn.Module):
                  scalar. Otherwise pytorch might keep a computation graph in the background and your program will run
                  out of memory.
         """
+        heatmap = self.forward(image)[0]
         w = image.size(2)
         h = image.size(1)
         all_detections = []
-        for i in range(image.size(0)):
-            current_class = image[i]
+        for i in range(heatmap.size(0)):
+            current_class = heatmap[i]
             peaks = extract_peak(current_class, min_score=0.0, max_det=30)
             for j in range(len(peaks)):
                 peaks[j] = peaks[j] + (w/2, h/2)

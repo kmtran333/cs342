@@ -29,6 +29,9 @@ def train(args):
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
 
+    if args.continue_training:
+        model.load_state_dict(torch.load(path.join(path.dirname(path.abspath(__file__)), 'fcn.th')))
+
     train_logger, valid_logger = None, None
     if args.log_dir is not None:
         train_logger = tb.SummaryWriter(path.join(args.log_dir, 'train'), flush_secs=1)
@@ -38,7 +41,7 @@ def train(args):
     Your code here, modify your HW3 code
     Hint: Use the log function below to debug and visualize your model
     """
-    optimizer = torch.optim.Adam(model.parameters())
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=1e-5)
 
     loss = FocalLoss()
     global_step = 0
@@ -91,9 +94,10 @@ if __name__ == '__main__':
     parser.add_argument('--log_dir')
     # Put custom arguments here
 
-    parser.add_argument('--n_epochs', type=int, default=50)
+    parser.add_argument('-n', '--n_epochs', type=int, default=50)
     parser.add_argument('--batch', type=int, default=128)
-    parser.add_argument('--lr', type=float, default=1e-3)
+    parser.add_argument('-lr','--lr', type=float, default=1e-3)
+    parser.add_argument('-c', '--continue_training', action='store_true')
     parser.add_argument('-sl', '--schedule_lr', action='store_true')
 
     args = parser.parse_args()
