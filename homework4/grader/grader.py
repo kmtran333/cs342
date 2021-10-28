@@ -57,8 +57,8 @@ def case(func, kwargs={}, score=1, extra_credit=False):
                 msg = str(e)
             except NotImplementedError as e:
                 msg = 'Function not implemented %s' % e
-            # except Exception as e:
-            #     msg = 'Crash "%s"' % e
+            except Exception as e:
+                msg = 'Crash "%s"' % e
             total += 1
         return int(n_passed * score / total + 0.5), msg
 
