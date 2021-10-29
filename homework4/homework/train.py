@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 
 class FocalLoss(torch.nn.Module):
-    def __init__(self, alpha=0.25, gamma=2., reduction='none'):
+    def __init__(self, alpha=1., gamma=2., reduction='none'):
         torch.nn.Module.__init__(self)
         self.alpha = alpha
         self.gamma = gamma
@@ -41,7 +41,7 @@ def train(args):
     Your code here, modify your HW3 code
     Hint: Use the log function below to debug and visualize your model
     """
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=1e-5)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
     loss = FocalLoss()
     global_step = 0
