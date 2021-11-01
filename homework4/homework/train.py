@@ -43,7 +43,8 @@ def train(args):
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
-    loss = FocalLoss()
+    # loss = FocalLoss()
+    loss = torch.nn.BCEWithLogitsLoss(pos_weight=torch.tensor([1.0/0.02929112, 1.0/0.0044619, 1.0/0.00411153]))
     global_step = 0
 
     for epoch in range(args.n_epochs):
@@ -60,7 +61,6 @@ def train(args):
             loss_data.append(loss_val.detach().cpu().numpy())
 
             train_logger.add_scalar('loss', float(loss_val.detach().cpu().numpy()), global_step=global_step)
-
 
             optimizer.zero_grad()
             loss_val.backward()
