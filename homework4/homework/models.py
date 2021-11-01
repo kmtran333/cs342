@@ -123,7 +123,7 @@ class Detector(torch.nn.Module):
         all_detections = []
         for i in range(heatmap.size(0)):
             current_class = heatmap[i]
-            peaks = extract_peak(current_class, min_score=0.0, max_det=30)
+            peaks = extract_peak(current_class, max_det=30)
             for j in range(len(peaks)):
                 peaks[j] = peaks[j] + (w/2, h/2)
             all_detections.append(peaks)
