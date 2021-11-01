@@ -44,7 +44,9 @@ def train(args):
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
     # loss = FocalLoss()
-    loss = torch.nn.BCEWithLogitsLoss(pos_weight=torch.tensor([1.0/0.02929112, 1.0/0.0044619, 1.0/0.00411153]))
+    pweights = torch.tensor([1.0 / 0.02929112, 1.0 / 0.0044619, 1.0 / 0.00411153])
+    pweights = torch.reshape(pweights, (1, 3, 1, 1)).to(device)
+    loss = torch.nn.BCEWithLogitsLoss(pos_weight=pweights)
     global_step = 0
 
     for epoch in range(args.n_epochs):
@@ -56,7 +58,7 @@ def train(args):
                 data, label, size = data.to(device), label.to(device), size.to(device)
             o = model(data)
 
-            loss_val = loss.forward(o, label)
+            loss_val = loss(o, label)
 
             loss_data.append(loss_val.detach().cpu().numpy())
 
