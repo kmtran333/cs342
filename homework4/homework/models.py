@@ -48,23 +48,6 @@ class CNNClassifier(torch.nn.Module):
         def forward(self, x):
             return F.relu(self.b3(self.c3(F.relu(self.b2(self.c2(F.relu(self.b1(self.c1(x)))))))) + self.skip(x))
 
-    def __init__(self, layers=[16, 32, 64, 128], n_output_channels=6, kernel_size=3):
-        super().__init__()
-        self.input_mean = torch.Tensor([0.3235, 0.3310, 0.3445])
-        self.input_std = torch.Tensor([0.2533, 0.2224, 0.2483])
-
-        L = []
-        c = 3
-        for l in layers:
-            L.append(self.Block(c, l, kernel_size, 2))
-            c = l
-        self.network = torch.nn.Sequential(*L)
-        self.classifier = torch.nn.Linear(c, n_output_channels)
-
-    def forward(self, x):
-        z = self.network((x - self.input_mean[None, :, None, None].to(x.device)) / self.input_std[None, :, None, None].to(x.device))
-        return self.classifier(z.mean(dim=[2, 3]))
-
 
 class Detector(torch.nn.Module):
     class UpBlock(torch.nn.Module):
