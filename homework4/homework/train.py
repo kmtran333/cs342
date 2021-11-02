@@ -9,18 +9,16 @@ import torch.nn.functional as F
 
 
 class FocalLoss(torch.nn.Module):
-    def __init__(self, alpha=0.25, gamma=2., reduction='none'):
+    def __init__(self, alpha=0.75, gamma=2., reduction='none'):
         torch.nn.Module.__init__(self)
-        self.alpha = torch.tensor([alpha, 1-alpha]).cuda()
+        self.alpha = alpha
         self.gamma = gamma
         self.reduction = reduction
 
     def forward(self, input, target):
         BCE_loss = F.binary_cross_entropy_with_logits(input, target, reduction=self.reduction)
-        target = target.type(torch.long)
-        at = self.alpha.gather(0, target.data.view(-1))
         pt = torch.exp(-BCE_loss)
-        F_loss = at * (1 - pt) ** self.gamma * BCE_loss
+        F_loss = self.alpha * (1 - pt) ** self.gamma * BCE_loss
         return F_loss.mean()
 
 
