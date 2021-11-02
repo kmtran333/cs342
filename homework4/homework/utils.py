@@ -1,6 +1,7 @@
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 from . import dense_transforms
+import sys
 
 
 class DetectionSuperTuxDataset(Dataset):

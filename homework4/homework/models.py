@@ -2,6 +2,7 @@ import torch
 import torch.nn.functional as F
 import sys
 
+
 def extract_peak(heatmap, max_pool_ks=7, min_score=-5, max_det=100):
     """
        Your code here.
@@ -31,7 +32,7 @@ def extract_peak(heatmap, max_pool_ks=7, min_score=-5, max_det=100):
     return output
 
 
-class Detector(torch.nn.Module):
+class CNNClassifier(torch.nn.Module):
     class Block(torch.nn.Module):
         def __init__(self, n_input, n_output, kernel_size=3, stride=2):
             super().__init__()
@@ -47,6 +48,25 @@ class Detector(torch.nn.Module):
         def forward(self, x):
             return F.relu(self.b3(self.c3(F.relu(self.b2(self.c2(F.relu(self.b1(self.c1(x)))))))) + self.skip(x))
 
+    def __init__(self, layers=[16, 32, 64, 128], n_output_channels=6, kernel_size=3):
+        super().__init__()
+        self.input_mean = torch.Tensor([0.3235, 0.3310, 0.3445])
+        self.input_std = torch.Tensor([0.2533, 0.2224, 0.2483])
+
+        L = []
+        c = 3
+        for l in layers:
+            L.append(self.Block(c, l, kernel_size, 2))
+            c = l
+        self.network = torch.nn.Sequential(*L)
+        self.classifier = torch.nn.Linear(c, n_output_channels)
+
+    def forward(self, x):
+        z = self.network((x - self.input_mean[None, :, None, None].to(x.device)) / self.input_std[None, :, None, None].to(x.device))
+        return self.classifier(z.mean(dim=[2, 3]))
+
+
+class Detector(torch.nn.Module):
     class UpBlock(torch.nn.Module):
         def __init__(self, n_input, n_output, kernel_size=3, stride=2):
             super().__init__()
@@ -71,7 +91,7 @@ class Detector(torch.nn.Module):
         skip_layer_size = [3] + layers[:-1]
 
         for i, l in enumerate(layers):
-            self.add_module('conv%d' % i, self.Block(c, l, kernel_size, 2))
+            self.add_module('conv%d' % i, CNNClassifier.Block(c, l, kernel_size, 2))
             c = l
         for i, l in list(enumerate(layers))[::-1]:
             self.add_module('upconv%d' % i, self.UpBlock(c, l, kernel_size, 2))

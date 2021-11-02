@@ -6,6 +6,8 @@ remote tests.
 import torch
 from .grader import Grader, Case
 
+import sys
+
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 
@@ -66,6 +68,7 @@ class PR:
 
         # Total number of detections, used to count false negatives
         self.total_det += int(torch.sum(sz >= self.min_size))
+
 
 
     @property
@@ -199,6 +202,9 @@ class DetectionGrader(Grader):
                     self.pr_box[i].add(detections[i], gt)
                     self.pr_dist[i].add(detections[i], gt)
                     self.pr_iou[i].add(detections[i], gt)
+        # print(len(self.pr_box[0].det), self.pr_box[0].total_det)
+        # print(len(self.pr_box[1].det), self.pr_box[1].total_det)
+        # print(len(self.pr_box[2].det), self.pr_box[2].total_det)
 
     @Case(score=10)
     def test_box_ap0(self, min_val=0.5, max_val=0.75):
