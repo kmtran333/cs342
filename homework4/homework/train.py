@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 
 class FocalLoss(torch.nn.Module):
-    def __init__(self, alpha=0.1, gamma=2., reduction='none'):
+    def __init__(self, alpha=0.75, gamma=2., reduction='none'):
         torch.nn.Module.__init__(self)
         self.alpha = alpha
         self.gamma = gamma
@@ -43,6 +43,9 @@ def train(args):
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
+    if args.schedule_lr:
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', verbose=True)
+
     loss = FocalLoss()
     # pweights = torch.tensor([(1.0 - 0.02929112) / 0.02929112,
     #                          (1.0 - 0.0044619) / 0.0044619,
@@ -73,6 +76,10 @@ def train(args):
             global_step += 1
 
         log(train_logger, data, label, o, global_step=global_step)
+
+        if args.schedule_lr:
+            train_logger.add_scalar('lr', optimizer.param_groups[0]['lr'], global_step=global_step)
+            scheduler.step(np.mean(loss_data))
         print(epoch)
     save_model(model)
 
