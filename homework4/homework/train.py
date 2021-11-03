@@ -60,7 +60,7 @@ def train(args):
             if device is not None:
                 data, label, size = data.to(device), label.to(device), size.to(device)
 
-            ones_mask = torch.ones(32,3,96,128)
+            ones_mask = torch.ones(32,3,96,128).to(device)
             peak_mask = torch.sum(torch.eq(label, ones_mask).float(), dim=1)
 
             o = model(data)
