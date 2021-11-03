@@ -5,6 +5,7 @@ remote tests.
 """
 import torch
 from .grader import Grader, Case
+import numpy as np
 
 import sys
 
@@ -27,8 +28,15 @@ def box_iou(pred, lbl, t=0.5):
     px, py, pw2, ph2 = pred[:, None, 0], pred[:, None, 1], pred[:, None, 2], pred[:, None, 3]
     px0, px1, py0, py1 = px - pw2, px + pw2, py - ph2, py + ph2
     x0, y0, x1, y1 = lbl[None, :, 0], lbl[None, :, 1], lbl[None, :, 2], lbl[None, :, 3]
+
     iou = (abs(torch.min(px1, x1) - torch.max(px0, x0)) * abs(torch.min(py1, y1) - torch.max(py0, y0))) / \
           (abs(torch.max(px1, x1) - torch.min(px0, x0)) * abs(torch.max(py1, y1) - torch.min(py0, y0)))
+
+    # print(pred)
+    # print(lbl)
+    # print(iou)
+    # sys.exit()
+
     return iou > t
 
 
@@ -202,9 +210,25 @@ class DetectionGrader(Grader):
                     self.pr_box[i].add(detections[i], gt)
                     self.pr_dist[i].add(detections[i], gt)
                     self.pr_iou[i].add(detections[i], gt)
-        # print(len(self.pr_box[0].det), self.pr_box[0].total_det)
-        # print(len(self.pr_box[1].det), self.pr_box[1].total_det)
-        # print(len(self.pr_box[2].det), self.pr_box[2].total_det)
+
+                # print(self.pr_box[0].det)
+                # print(self.pr_iou[0].det)
+                # list_det = self.pr_iou[0].det
+                # true_pos, false_pos = 0, 0
+                # r = []
+                # for t, m in sorted(list_det, reverse=True):
+                #     if m:
+                #         true_pos += 1
+                #     else:
+                #         false_pos += 1
+                #     prec = true_pos / (true_pos + false_pos)
+                #     recall = true_pos / self.pr_iou[0].total_det
+                #     r.append((prec, recall))
+                # print(r)
+                # pr = np.array(r, np.float32)
+                # print("-----------pr-------------")
+                # print(pr)
+                # sys.exit()
 
     @Case(score=10)
     def test_box_ap0(self, min_val=0.5, max_val=0.75):

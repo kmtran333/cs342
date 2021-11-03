@@ -121,15 +121,17 @@ class Detector(torch.nn.Module):
         """
         heatmap = self.forward(image)[0]
         heatmap_peak = torch.sigmoid(heatmap[:3, :, :])
-        heatmap_w = heatmap[3, :, :]
-        heatmap_h = heatmap[4, :, :]
+
+        heatmap_w = heatmap[4, :, :]
+        heatmap_h = heatmap[3, :, :]
         all_detections = []
         for i in range(heatmap_peak.size(0)):
             current_class = heatmap_peak[i]
             peaks = extract_peak(current_class, max_det=30)
             for j in range(len(peaks)):
-
-                peaks[j] = peaks[j] + (w/2, h/2)
+                w = heatmap_w[peaks[j][2], peaks[j][1]].detach().cpu().numpy()
+                h = heatmap_h[peaks[j][2], peaks[j][1]].detach().cpu().numpy()
+                peaks[j] = peaks[j] + (w, h)
             all_detections.append(peaks)
 
         return all_detections
