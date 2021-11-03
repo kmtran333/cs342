@@ -83,7 +83,7 @@ def train(args):
 
             global_step += 1
 
-        log(train_logger, data, label, o, global_step=global_step)
+        log(train_logger, data, label, o_peak, global_step=global_step)
 
         if args.schedule_lr:
             train_logger.add_scalar('lr', optimizer.param_groups[0]['lr'], global_step=global_step)
