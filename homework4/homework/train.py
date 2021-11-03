@@ -69,9 +69,7 @@ def train(args):
 
             loss_val1 = loss1.forward(o_peak, label)
             loss_val2 = loss2.forward(o_size * peak_mask[:, None, :, :], size * peak_mask[:, None, :, :])
-            weight1 = loss_val1 / (loss_val1 + loss_val2)
-            weight2 = loss_val2 / (loss_val1 + loss_val2)
-            loss_val = ((1 / weight1) * loss_val1) + ((1 / weight2) * loss_val2)
+            loss_val = ((1 - args.loss_weight) * loss_val1) + (args.loss_weight * loss_val2)
 
             loss_data.append(loss_val.detach().cpu().numpy())
 
@@ -118,6 +116,7 @@ if __name__ == '__main__':
     parser.add_argument('-lr', '--learning_rate', type=float, default=1e-3)
     parser.add_argument('-c', '--continue_training', action='store_true')
     parser.add_argument('-sl', '--schedule_lr', action='store_true')
+    parser.add_argument('-lw', '--loss_weight', type=float, default=0.2)
 
     args = parser.parse_args()
 
