@@ -59,7 +59,7 @@ class Detector(torch.nn.Module):
         def forward(self, x):
             return F.relu(self.c1(x))
 
-    def __init__(self, layers=[16, 32, 64, 128], n_output_channels=3, kernel_size=3, use_skip=True):
+    def __init__(self, layers=[16, 32, 64, 128], n_output_channels=5, kernel_size=3, use_skip=True):
         """
            Your code here.
            Setup your detection network
@@ -120,14 +120,15 @@ class Detector(torch.nn.Module):
                  out of memory.
         """
         heatmap = self.forward(image)[0]
-
-        w = image.size(2)
-        h = image.size(1)
+        heatmap_peak = torch.sigmoid(heatmap[:3, :, :])
+        heatmap_w = heatmap[3, :, :]
+        heatmap_h = heatmap[4, :, :]
         all_detections = []
-        for i in range(heatmap.size(0)):
-            current_class = heatmap[i]
+        for i in range(heatmap_peak.size(0)):
+            current_class = heatmap_peak[i]
             peaks = extract_peak(current_class, max_det=30)
             for j in range(len(peaks)):
+
                 peaks[j] = peaks[j] + (w/2, h/2)
             all_detections.append(peaks)
 

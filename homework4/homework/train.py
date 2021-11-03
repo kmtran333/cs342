@@ -6,6 +6,7 @@ from .utils import load_detection_data
 from . import dense_transforms
 import torch.utils.tensorboard as tb
 import torch.nn.functional as F
+import sys
 
 
 class FocalLoss(torch.nn.Module):
@@ -20,23 +21,6 @@ class FocalLoss(torch.nn.Module):
         pt = torch.exp(-BCE_loss)
         F_loss = self.alpha * (1 - pt) ** self.gamma * BCE_loss
         return F_loss.mean()
-
-
-# class FocalLoss(torch.nn.Module):
-#     def __init__(self, weight=None, gamma=2., reduction='none'):
-#         torch.nn.Module.__init__(self)
-#         self.gamma = gamma
-#         self.weight = weight
-#         self.reduction = reduction
-#
-#     def forward(self, input, target):
-#         log_prob = F.log_softmax(input, dim=-1)
-#         prob = torch.exp(log_prob)
-#         return F.nll_loss(
-#             ((1 - prob) ** self.gamma) * log_prob,
-#             torch.argmax(target, dim=1),
-#             weight=self.weight,
-#             reduction=self.reduction)
 
 
 def train(args):
@@ -63,16 +47,9 @@ def train(args):
     if args.schedule_lr:
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', verbose=True)
 
-    # pweights = torch.tensor([1.0 / 0.02929112,
-    #                          1.0 / 0.0044619,
-    #                          1.0 / 0.00411153])
+    loss1 = FocalLoss()
+    loss2 = torch.nn.MSELoss()
 
-    loss = FocalLoss()
-    # pweights = torch.tensor([(1.0 - 0.02929112) / 0.02929112,
-    #                          (1.0 - 0.0044619) / 0.0044619,
-    #                          (1.0 - 0.00411153) / 0.00411153])
-    # pweights = torch.reshape(pweights, (1, 3, 1, 1)).to(device)
-    # loss = torch.nn.BCEWithLogitsLoss(pos_weight=pweights)
     global_step = 0
 
     for epoch in range(args.n_epochs):
@@ -82,9 +59,19 @@ def train(args):
         for data, label, size in train_data:
             if device is not None:
                 data, label, size = data.to(device), label.to(device), size.to(device)
-            o = model(data)
 
-            loss_val = loss.forward(o, label)
+            ones_mask = torch.ones(32,3,96,128)
+            peak_mask = torch.sum(torch.eq(label, ones_mask).float(), dim=1)
+
+            o = model(data)
+            o_peak = o[:, :3, :, :]
+            o_size = o[:, 3:, :, :]
+
+            loss_val1 = loss1.forward(o_peak, label)
+            loss_val2 = loss2.forward(o_size * peak_mask[:, None, :, :], size * peak_mask[:, None, :, :])
+            weight1 = loss_val1 / (loss_val1 + loss_val2)
+            weight2 = loss_val2 / (loss_val1 + loss_val2)
+            loss_val = ((1 / weight1) * loss_val1) + ((1 / weight2) * loss_val2)
 
             loss_data.append(loss_val.detach().cpu().numpy())
 
