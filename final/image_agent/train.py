@@ -30,10 +30,10 @@ def train():
         dense_transforms.ToTensor(),
     ])
 
-    train_batch_size = 500
-    valid_batch_size = 200
+    train_batch_size = 128
+    valid_batch_size = 128
 
-    data_path = 'data'
+    data_path = 'drive_data'
     dataset = SuperTuxDataset(data_path, transform=transform)
 
     train_per = .7
@@ -48,20 +48,20 @@ def train():
                                                batch_size=train_batch_size,
                                                shuffle=True,
                                                drop_last=True,
-                                               num_workers=8,
+                                               num_workers=2,
                                                pin_memory=True)
 
     val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
                                              batch_size=valid_batch_size,
                                              shuffle=True,
                                              drop_last=True,
-                                             num_workers=4,
+                                             num_workers=1,
                                              pin_memory=True)
 
     loss_fn = torch.nn.MSELoss(reduction='mean')
     lr = 1e-3
     weight_decay = 1e-5
-    epochs = 250
+    epochs = 50
 
     logger = tb.SummaryWriter(log_dir + '/%s' % (time.time()), flush_secs=1)
     optimizer = torch.optim.Adam(model.parameters(),
@@ -81,6 +81,7 @@ def train():
         train_epoch_loss = 0.0
         model.train(True)
         for (input, target) in train_loader:
+            torch.cuda.empty_cache()
             input = input.to(device)
             target = target.type(torch.FloatTensor).to(device)
             
@@ -100,6 +101,7 @@ def train():
         val_epoch_loss = 0.0
         model.train(False)
         for (input, target) in val_loader:
+            torch.cuda.empty_cache()
             input = input.to(device)
             target = target.type(torch.FloatTensor).to(device)
 
@@ -118,6 +120,8 @@ def train():
 
         scheduler.step(train_loss)
         scheduler.step(val_loss)
+
+        print(epoch)
 
     save_model(model)
 

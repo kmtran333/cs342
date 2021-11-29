@@ -4,7 +4,7 @@ from collections import namedtuple
 
 TRACK_NAME = 'icy_soccer_field'
 DATASET_PATH = 'drive_data'
-MAX_FRAMES = 1000
+MAX_FRAMES = 20000
 TIMEOUT_SLACK = 2   # seconds
 TIMEOUT_STEP = 0.1  # seconds
 
@@ -64,12 +64,10 @@ class TeamRunner:
             assignment = grader.load_assignment(agent_dir)
             if assignment is None:
                 self._error = 'Failed to load submission.'
-                print('Failed to load submission.')
             else:
                 self._team = assignment.Team()
         except Exception as e:
             self._error = 'Failed to load submission: {}'.format(str(e))
-            print('Failed to load submission: {}'.format(str(e)))
         self.agent_type = self._team.agent_type
 
     def new_match(self, team: int, num_players: int) -> list:
@@ -109,7 +107,7 @@ class Match:
     """
         Do not create more than one match per process (use ray to create more)
     """
-    def __init__(self, use_graphics=False, logging_level=None):
+    def __init__(self, use_graphics=True, logging_level=None):
         # DO this here so things work out with ray
         import pystk
         self._pystk = pystk
@@ -117,7 +115,7 @@ class Match:
             logging.basicConfig(level=logging_level)
 
         # Fire up pystk
-        self._use_graphics = use_graphics
+        self._use_graphics = True
         if use_graphics:
             graphics_config = self._pystk.GraphicsConfig.hd()
             graphics_config.screen_width = 400
@@ -233,6 +231,25 @@ class Match:
             ball_loc = None
             if soccer_state:
                 ball_loc = soccer_state['ball']['location']
+                proj = np.array(team1_state[0]['camera']['projection']).T
+                view = np.array(team1_state[0]['camera']['view']).T
+                WH2 = np.array([self.screen_width, self.screen_height]) / 2
+
+                ball_on_img = WH2*(1+self._to_image(ball_loc, proj, view))
+                f = race.render_data[0].instance
+                x = round(ball_on_img[1])
+                y = round(ball_on_img[0])
+                if y == 400:
+                    y = 399
+                if x == 300:
+                    x = 299
+                label_on_image_at_puck_loc = f[x][y] >> 24
+                if label_on_image_at_puck_loc != 8:
+                    ball_on_img = [-1,-1]
+                else:
+                    ball_on_img = self._to_image(ball_loc, proj, view)
+
+
 
             team1_images = team2_images = None
             if self._use_graphics:
@@ -241,7 +258,7 @@ class Match:
 
             # Save images to drive_data
             if save_images:
-                data_callback(it, team1_images[0], ball_loc) #team1_images[0] = agent 1, team1_image[1] = agent 2
+                data_callback(it, team1_images[0], ball_on_img) #team1_images[0] = agent 1, team1_image[1] = agent 2
 
             # Have each team produce actions (in parallel)
             if t1_type == 'image':
@@ -283,6 +300,7 @@ class Match:
                                          ec='b', fill=False, lw=1.5))
                 ax.add_artist(plt.Circle(WH2*(1+self._to_image(soccer_state['ball']['location'], proj, view)), 2,
                                          ec='r', fill=False, lw=1.5))
+
                 plt.pause(1e-3)
 
             logging.debug('  race.step  [score = {}]'.format(state.soccer.score))
@@ -307,13 +325,13 @@ if __name__ == '__main__':
     parser = ArgumentParser(description="Play some Ice Hockey. List any number of players, odd players are in team 1, even players team 2.")
     parser.add_argument('-si', '--save_images', action='store_true')
     parser.add_argument('-o', '--output', default=DATASET_PATH)
-    parser.add_argument('-n', '--n_images', default=10000, type=int)
+    parser.add_argument('-n', '--n_images', default=20000, type=int)
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-r', '--record_video', help="Do you want to record a video?")
     parser.add_argument('-s', '--record_state', help="Do you want to pickle the state?")
-    parser.add_argument('-f', '--num_frames', default=1000, type=int, help="How many steps should we play for?")
+    parser.add_argument('-f', '--num_frames', default=20000, type=int, help="How many steps should we play for?")
     parser.add_argument('-p', '--num_players', default=2, type=int, help="Number of players per team")
-    parser.add_argument('-m', '--max_score', default=3, type=int, help="How many goal should we play to?")
+    parser.add_argument('-m', '--max_score', default=1200, type=int, help="How many goal should we play to?")
     parser.add_argument('-j', '--parallel', type=int, help="How many parallel process to use?")
     parser.add_argument('--ball_location', default=[0, 0], type=float, nargs=2, help="Initial xy location of ball")
     parser.add_argument('--ball_velocity', default=[0, 0], type=float, nargs=2, help="Initial xy velocity of ball")
@@ -335,19 +353,21 @@ if __name__ == '__main__':
         from csv import writer
 
         global n
-        id = n if n < 10000 else np.random.randint(0, n + 1)
-        if id < 10000:
-            fn = path.join(args.output, TRACK_NAME + '_%05d' % id)
-            label = []
-            label.append(id)
-            label.append(bl[0])
-            label.append(bl[1])
-            label.append(bl[2])
-            with open('labels.csv', 'a+', newline='') as write_obj:
-                 csv_writer = writer(write_obj)
-                 csv_writer.writerow(label)
-            Image.fromarray(im).save(fn + '.png')
-        n += 1
+        id = n if n < 20000 else np.random.randint(0, n + 1)
+        if id < 20000:
+            fn = path.join(args.output, '%05d' % id)
+            # For now, lets exclude the off screen pucks. Can change later
+            if bl[0] == -1 and bl[1] == -1:
+                print("NOT SAVED, OFF SCREEN")
+                pass #  Do nothing
+            else:
+                label = bl
+
+                with open(fn + '.csv', 'w', newline='') as write_obj:
+                     csv_writer = writer(write_obj)
+                     csv_writer.writerow(label)
+                Image.fromarray(im).save(fn + '_im.jpg')
+                n += 1
 
     if args.parallel is None or remote.ray is None:
         # Create the teams
@@ -363,18 +383,18 @@ if __name__ == '__main__':
             recorder = recorder & utils.StateRecorder(args.record_state)
 
         # Start the match
-        match = Match(use_graphics=team1.agent_type == 'image' or team2.agent_type == 'image')
+        match = Match()
         try:
             result = match.run(team1, team2, args.num_players, args.num_frames, max_score=args.max_score,
                                initial_ball_location=args.ball_location, initial_ball_velocity=args.ball_velocity,
                                record_fn=recorder, save_images=args.save_images, data_callback=collect,
                                verbose=args.verbose)
-            print('Match results', result)
         except MatchException as e:
             print('Match failed', e.score)
             print(' T1:', e.msg1)
             print(' T2:', e.msg2)
 
+        print('Match results', result)
 
     else:
         # Fire up ray
@@ -400,7 +420,7 @@ if __name__ == '__main__':
                 recorder = remote.RayStateRecorder.remote(args.record_state.replace(ext, f'.{i}{ext}'))
 
             match = remote.RayMatch.remote(logging_level=getattr(logging, environ.get('LOGLEVEL', 'WARNING').upper()),
-                                           use_graphics=team1.agent_type == 'image' or team2.agent_type == 'image')
+                                           use_graphics=True)
             result = match.run.remote(team1, team2, args.num_players, args.num_frames, max_score=args.max_score,
                                       initial_ball_location=args.ball_location,
                                       initial_ball_velocity=args.ball_velocity,

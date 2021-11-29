@@ -20,7 +20,7 @@ class SuperTuxDataset(Dataset):
         self.labels = []
 
         for file in os.listdir(dataset_path):
-            if '.png' in file:
+            if '.png' in file or '.jpg':
                 self.image_paths.append(file)
             elif '.csv' in file:
                 with open('%s/%s' % (dataset_path, file)) as csvfile:
