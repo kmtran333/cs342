@@ -60,6 +60,9 @@ def train(args):
             if device is not None:
                 data, label, size = data.to(device), label.to(device), size.to(device)
 
+            print(label)
+            print(label.size())
+
             ones_mask = torch.ones(32, 3, 96, 128).to(device)
             peak_mask = torch.sum(torch.eq(label, ones_mask).float(), dim=1)
 
@@ -127,6 +130,8 @@ if __name__ == '__main__':
 
     transforms = dense_transforms.Compose(transforms)
 
+    # train_data_no_transforms = load_detection_data('dense_data/train')
     train_data = load_detection_data('dense_data/train', transform=transforms)
     valid_data = load_detection_data('dense_data/valid')
+
     train(args)
